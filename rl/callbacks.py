@@ -396,6 +396,7 @@ class ModelIntervalCheckpoint(Callback):
             print('Step {}: saving model to {}'.format(
                 self.total_steps, filepath))
         self.model.save_weights(filepath, overwrite=True)
+        self.model.save(filepath, overwrite=True)
 
 
 class WandbLogger(Callback):
