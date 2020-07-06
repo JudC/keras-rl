@@ -468,6 +468,14 @@ class Agent(object):
             overwrite (boolean): If `False` and `filepath` already exists, raises an error.
         """
         raise NotImplementedError()
+    def save_model(self, filepath, overwrite=False):
+        """Saves the model of an agent as an H5 file.
+
+        # Arguments
+            filepath (str): The path to where the weights should be saved.
+            overwrite (boolean): If `False` and `filepath` already exists, raises an error.
+        """
+        raise NotImplementedError()
 
     @property
     def layers(self):
