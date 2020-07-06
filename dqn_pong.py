@@ -95,8 +95,12 @@ policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., valu
 # is Boltzmann-style exploration:
 # policy = BoltzmannQPolicy(tau=1.)
 # Feel free to give it a try!
+checkpoint_model_filepath= 'results/pong_model.h5'
+if args.weights:
+    del model
+    model = load_model(checkpoint_model_filepath)
 
-dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory, enable_dueling_network=True,
+dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=BoltzmannQPolicy(tau=1.), memory=memory, enable_dueling_network=True,
              dueling_type='avg',
                processor=processor, nb_steps_warmup=50000, gamma=.99, target_model_update=10000,
                train_interval=4, delta_clip=1.)
@@ -108,10 +112,18 @@ if args.mode == 'train':
     weights_filename = 'dqn_{}_weights.h5f'.format(args.env_name)
     checkpoint_weights_filename = 'dqn_' + args.env_name + '_weights_{step}.h5f'
     log_filename = 'dqn_{}_log.json'.format(args.env_name)
+
+    model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=checkpoint_model_filepath,
+        save_weights_only=False,
+        monitor='val_acc',
+        save_best_only=False,
+        mode='max', save_freq='epoch')
     
     callbacks = [ModelIntervalCheckpoint('results/' + checkpoint_weights_filename, interval=250000)]
     callbacks += [FileLogger('results/' + log_filename, interval=100)]
     callbacks += [WandbLogger(project='pong')]
+    callbacks += [model_checkpoint_callback]
     dqn.fit(env, callbacks=callbacks, nb_steps=6000000, log_interval=10000)
 
     # After training is done, we save the final weights one more time.
