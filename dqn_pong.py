@@ -1,6 +1,7 @@
 from __future__ import division
 import argparse
-
+import tensorflow.python.util.deprecation as deprecation
+deprecation._PRINT_DEPRECATION_WARNINGS = False
 from PIL import Image
 import numpy as np
 import gym
@@ -9,6 +10,7 @@ import wandb
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, Convolution2D, Permute
 from keras.optimizers import Adam
+import keras.models as M
 import keras.backend as K
 import tensorflow as tf
 
@@ -17,7 +19,6 @@ from rl.policy import LinearAnnealedPolicy, BoltzmannQPolicy, EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 from rl.core import Processor
 from rl.callbacks import FileLogger, ModelIntervalCheckpoint, WandbLogger
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 INPUT_SHAPE = (84, 84)
 WINDOW_LENGTH = 4
@@ -95,10 +96,9 @@ policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., valu
 # is Boltzmann-style exploration:
 # policy = BoltzmannQPolicy(tau=1.)
 # Feel free to give it a try!
-checkpoint_model_filepath= 'results/pong_model.h5'
 if args.weights:
     del model
-    model = load_model(checkpoint_model_filepath)
+    model = M.load_model(checkpoint_model_filepath)
 
 dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=BoltzmannQPolicy(tau=1.), memory=memory, enable_dueling_network=True,
              dueling_type='avg',
@@ -113,17 +113,9 @@ if args.mode == 'train':
     checkpoint_weights_filename = 'dqn_' + args.env_name + '_weights_{step}.h5f'
     log_filename = 'dqn_{}_log.json'.format(args.env_name)
 
-    model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath=checkpoint_model_filepath,
-        save_weights_only=False,
-        monitor='val_acc',
-        save_best_only=False,
-        mode='max', save_freq='epoch')
-    
     callbacks = [ModelIntervalCheckpoint('results/' + checkpoint_weights_filename, interval=250000)]
     callbacks += [FileLogger('results/' + log_filename, interval=100)]
     callbacks += [WandbLogger(project='pong')]
-    callbacks += [model_checkpoint_callback]
     dqn.fit(env, callbacks=callbacks, nb_steps=6000000, log_interval=10000)
 
     # After training is done, we save the final weights one more time.
