@@ -419,13 +419,13 @@ class WandbLogger(Callback):
     def on_train_begin(self, logs):
         self.train_start = timeit.default_timer()
         self.metrics_names = self.model.metrics_names
-        wandb.config.update({
-            'params': self.params,
-            'env': self.env.__dict__,
-            'env.env': self.env.env.__dict__,
-            'env.env.spec': self.env.env.spec.__dict__,
-            'agent': self.model.__dict__
-        })
+        # wandb.config.update({
+        #     'params': self.params,
+        #     'env': self.env.__dict__,
+        #     'env.env': self.env.env.__dict__,
+        #     'env.env.spec': self.env.env.spec.__dict__,
+        #     'agent': self.model.__dict__
+        # })
 
     def on_episode_begin(self, episode, logs):
         """ Reset environment variables at beginning of each episode """
